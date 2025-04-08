@@ -1,7 +1,7 @@
 const CharacterSheet = require('../models/CharacterSheet');
 
 // Crea una nuova scheda personaggio
-exports.createCharacterSheet = async (req, res) => {
+const createCharacterSheet = async (req, res) => {
   try {
     // Aggiungi l'ID dell'utente dalla richiesta autenticata
     const characterData = {
@@ -20,7 +20,7 @@ exports.createCharacterSheet = async (req, res) => {
 };
 
 // Ottieni tutte le schede personaggio dell'utente
-exports.getCharacterSheets = async (req, res) => {
+const getCharacterSheets = async (req, res) => {
   try {
     // Filtra per l'ID dell'utente dalla richiesta autenticata
     const sheets = await CharacterSheet.find({ user: req.user._id });
@@ -32,7 +32,7 @@ exports.getCharacterSheets = async (req, res) => {
 };
 
 // Ottieni una scheda personaggio specifica
-exports.getCharacterSheet = async (req, res) => {
+const getCharacterSheet = async (req, res) => {
   try {
     const sheet = await CharacterSheet.findOne({
       _id: req.params.id,
@@ -51,7 +51,7 @@ exports.getCharacterSheet = async (req, res) => {
 };
 
 // Aggiorna una scheda personaggio
-exports.updateCharacterSheet = async (req, res) => {
+const updateCharacterSheet = async (req, res) => {
   try {
     const sheet = await CharacterSheet.findOneAndUpdate(
       {
@@ -74,7 +74,7 @@ exports.updateCharacterSheet = async (req, res) => {
 };
 
 // Elimina una scheda personaggio
-exports.deleteCharacterSheet = async (req, res) => {
+const deleteCharacterSheet = async (req, res) => {
   try {
     const sheet = await CharacterSheet.findOneAndDelete({
       _id: req.params.id,
@@ -90,4 +90,37 @@ exports.deleteCharacterSheet = async (req, res) => {
     console.error('Error deleting character sheet:', error);
     res.status(500).json({ message: 'Error deleting character sheet' });
   }
+};
+
+// Aggiorna l'immagine del personaggio
+const updateCharacterImage = async (characterId, imageUrl, publicId) => {
+  try {
+    const characterSheet = await CharacterSheet.findByIdAndUpdate(
+      characterId,
+      {
+        characterImage: {
+          url: imageUrl,
+          publicId: publicId
+        }
+      },
+      { new: true }
+    );
+
+    if (!characterSheet) {
+      throw new Error('Character sheet not found');
+    }
+
+    return characterSheet;
+  } catch (error) {
+    throw new Error(`Error updating character image: ${error.message}`);
+  }
+};
+
+module.exports = {
+  createCharacterSheet,
+  getCharacterSheets,
+  getCharacterSheet,
+  updateCharacterSheet,
+  deleteCharacterSheet,
+  updateCharacterImage
 }; 

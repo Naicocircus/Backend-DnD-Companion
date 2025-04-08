@@ -1,3 +1,4 @@
+require('dotenv').config();
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const User = require('../models/User');
@@ -17,22 +18,38 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
+// Log della configurazione OAuth
+console.log('Google OAuth Configuration:', {
+  clientID: process.env.GOOGLE_CLIENT_ID ? 'Configurato' : 'Non configurato',
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET ? 'Configurato' : 'Non configurato',
+  callbackURL: process.env.GOOGLE_CALLBACK_URL
+});
+
 // Configurazione Google Strategy
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: "/api/auth/google/callback"
+    callbackURL: process.env.GOOGLE_CALLBACK_URL,
+    passReqToCallback: true
   },
-  async (accessToken, refreshToken, profile, done) => {
+  async (req, accessToken, refreshToken, profile, done) => {
     try {
+      console.log('Google OAuth callback ricevuto:', {
+        profileId: profile.id,
+        email: profile.emails?.[0]?.value,
+        displayName: profile.displayName
+      });
+
       // Cerca l'utente nel database
       let user = await User.findOne({ googleId: profile.id });
 
       if (user) {
+        console.log('Utente esistente trovato:', user.email);
         return done(null, user);
       }
 
       // Se l'utente non esiste, crealo
+      console.log('Creazione nuovo utente con email:', profile.emails?.[0]?.value);
       user = await User.create({
         googleId: profile.id,
         email: profile.emails[0].value,
@@ -45,6 +62,7 @@ passport.use(new GoogleStrategy({
 
       return done(null, user);
     } catch (error) {
+      console.error('Errore durante l\'autenticazione Google:', error);
       return done(error, null);
     }
   }
