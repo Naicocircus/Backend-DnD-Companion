@@ -3,6 +3,7 @@ const router = express.Router();
 const characterSheetController = require('../controllers/characterSheet.controller');
 const protect = require('../middleware/protect');
 const { upload, uploadToCloudinary } = require('../utils/imageUpload');
+const isAuthenticated = require('../middleware/auth');
 
 // Tutte le route sono protette e richiedono autenticazione
 router.use(protect);
@@ -14,6 +15,8 @@ router.post('/:id/upload-image', upload.single('image'), async (req, res) => {
       return res.status(400).json({ message: 'Nessuna immagine fornita' });
     }
 
+    console.log("Ricevuto imageUrl:", req.body.imageUrl);
+    
     let imageResult;
     
     if (req.file) {

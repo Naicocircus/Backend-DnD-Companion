@@ -87,7 +87,11 @@ const characterSheetSchema = new mongoose.Schema({
   updatedAt: {
     type: Date,
     default: Date.now
-  }
+  },
+  characterImage: {
+    url: String,
+    publicId: String
+  },
 });
 
 // Aggiorna updatedAt prima di ogni salvataggio

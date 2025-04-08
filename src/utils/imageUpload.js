@@ -1,5 +1,6 @@
 const cloudinary = require('../config/cloudinary');
 const multer = require('multer');
+const axios = require('axios');
 
 // Configure multer for memory storage
 const storage = multer.memoryStorage();
@@ -18,41 +19,65 @@ const upload = multer({
 });
 
 // Upload image to Cloudinary
-const uploadToCloudinary = async (file) => {
+const uploadToCloudinary = async (fileOrUrl) => {
   try {
-    if (!file || !file.buffer) {
-      throw new Error('No file buffer provided');
+    // Caso 1: è un oggetto multer (ha buffer)
+    if (fileOrUrl?.buffer) {
+      const b64 = Buffer.from(fileOrUrl.buffer).toString('base64');
+      const dataURI = `data:${fileOrUrl.mimetype};base64,${b64}`;
+      const result = await cloudinary.uploader.upload(dataURI, {
+        folder: 'dnd-companion/profile-images',
+        resource_type: 'auto',
+        transformation: [
+          { width: 200, height: 200, crop: 'fill' },
+          { quality: 'auto' }
+        ]
+      });
+      return {
+        url: result.secure_url,
+        publicId: result.public_id,
+      };
     }
 
-    console.log('File received:', {
-      mimetype: file.mimetype,
-      size: file.size,
-      buffer: file.buffer ? 'Buffer present' : 'No buffer'
-    });
+    //  Caso 2: è un'immagine base64 (stringa data:image...)
+    if (typeof fileOrUrl === 'string' && fileOrUrl.startsWith('data:image')) {
+      const result = await cloudinary.uploader.upload(fileOrUrl, {
+        folder: 'dnd-companion/profile-images',
+        resource_type: 'auto',
+        transformation: [
+          { width: 200, height: 200, crop: 'fill' },
+          { quality: 'auto' }
+        ]
+      });
+      return {
+        url: result.secure_url,
+        publicId: result.public_id,
+      };
+    }
 
-    // Convert buffer to base64
-    const b64 = Buffer.from(file.buffer).toString('base64');
-    const dataURI = 'data:' + file.mimetype + ';base64,' + b64;
-    
-    console.log('Uploading to Cloudinary...');
-    // Upload to Cloudinary
-    const result = await cloudinary.uploader.upload(dataURI, {
-      folder: 'dnd-companion/profile-images',
-      resource_type: 'auto',
-      transformation: [
-        { width: 200, height: 200, crop: 'fill' },
-        { quality: 'auto' }
-      ]
-    });
-    console.log('Upload successful:', result.secure_url);
+    //  Caso 3: è un URL remoto (es. immagine OpenAI)
+    if (typeof fileOrUrl === 'string' && fileOrUrl.startsWith('http')) {
+      console.log('Scarico immagine da URL remoto:', fileOrUrl);
+      
+      const response = await axios.get(fileOrUrl, { responseType: 'arraybuffer' });
+      const base64 = Buffer.from(response.data).toString('base64');
+      const dataURI = `data:image/png;base64,${base64}`;
+      
+      const result = await cloudinary.uploader.upload(dataURI, {
+        folder: 'dnd-companion/profile-images',
+        resource_type: 'auto'
+      });
+      
+      return {
+        url: result.secure_url,
+        publicId: result.public_id,
+      };
+    }
 
-    return {
-      url: result.secure_url,
-      publicId: result.public_id,
-    };
+    throw new Error('Formato immagine non supportato');
   } catch (error) {
     console.error('Error in uploadToCloudinary:', error);
-    throw new Error(`Error uploading image: ${error.message}`);
+    throw new Error(`Errore nel caricamento su Cloudinary: ${error.message}`);
   }
 };
 
