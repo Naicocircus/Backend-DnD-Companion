@@ -29,4 +29,6 @@ router.post('/', auth, characterController.createCharacter);
 router.put('/:id', auth, characterController.updateCharacter);
 router.delete('/:id', auth, characterController.deleteCharacter);
 
+
+
 module.exports = router; 
