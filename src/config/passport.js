@@ -25,6 +25,12 @@ console.log('Google OAuth Configuration:', {
   callbackURL: process.env.GOOGLE_CALLBACK_URL
 });
 
+console.log('[DEBUG] ENV VALUES:', {
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  callbackURL: process.env.GOOGLE_CALLBACK_URL
+});
+
+
 // Configurazione Google Strategy
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,

@@ -32,24 +32,26 @@ router.get('/google/callback',
 // @desc    Logout user
 router.get('/logout', protect, logout);
 
-// Debug route - RIMUOVERE IN PRODUZIONE
-router.get('/debug/users', async (req, res) => {
+// ✅ GET /api/auth/user - restituisce utente completo dal DB
+router.get('/user', protect, async (req, res) => {
   try {
-    const users = await User.find({}).select('+password');
-    res.json(users);
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'Utente non trovato' });
+    }
+    res.json(user);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Errore nel recupero utente:', error);
+    res.status(500).json({ message: 'Errore nel recupero utente' });
   }
 });
 
-// TEMPORARY: Delete all users route
-router.delete('/debug/users', async (req, res) => {
-  try {
-    await User.deleteMany({});
-    res.json({ message: 'All users deleted' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+// Test protected route
+router.get('/me', protect, (req, res) => {
+  res.json({
+    success: true,
+    user: req.user
+  });
 });
 
 // @route   POST /api/auth/login
@@ -61,23 +63,30 @@ router.post('/login', login);
 router.post('/register', register);
 
 // @route   POST /api/auth/google-login
-// @desc    Login with Google
+// @desc    Login with Google (frontend)
 router.post('/google-login', googleLogin);
 
-// @route   GET /api/auth/user
-// @desc    Get user data
-router.get('/user', (req, res) => {
-  res.json(req.user);
-});
-
-// Test protected route
-router.get('/me', protect, (req, res) => {
-  res.json({
-    success: true,
-    user: req.user
-  });
-});
-
+// @route   DELETE /api/auth/delete
+// @desc    Delete account
 router.delete('/delete', protect, deleteAccount);
 
-module.exports = router; 
+// ❗️ Debug routes - solo per sviluppo
+router.get('/debug/users', async (req, res) => {
+  try {
+    const users = await User.find({}).select('+password');
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.delete('/debug/users', async (req, res) => {
+  try {
+    await User.deleteMany({});
+    res.json({ message: 'All users deleted' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+module.exports = router;
