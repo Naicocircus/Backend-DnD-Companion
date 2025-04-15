@@ -98,14 +98,14 @@ exports.register = async (req, res) => {
   }
 };
 
-// ✅ Google OAuth callback (Passport)
+// Google OAuth callback (Passport)
 exports.googleCallback = async (req, res) => {
   try {
     const { user } = req;
     const token = generateToken(user);
 
     // ✅ Redirect al frontend con token
-    const redirectUrl = `http://localhost:3000/auth?token=${token}`;
+    const redirectUrl = `${process.env.CLIENT_URL}/auth?token=${token}`;
     res.redirect(redirectUrl);
   } catch (error) {
     console.error('Google callback error:', error);
