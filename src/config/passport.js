@@ -18,19 +18,6 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
-// Log della configurazione OAuth
-console.log('Google OAuth Configuration:', {
-  clientID: process.env.GOOGLE_CLIENT_ID ? 'Configurato' : 'Non configurato',
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET ? 'Configurato' : 'Non configurato',
-  callbackURL: process.env.GOOGLE_CALLBACK_URL
-});
-
-console.log('[DEBUG] ENV VALUES:', {
-  clientID: process.env.GOOGLE_CLIENT_ID,
-  callbackURL: process.env.GOOGLE_CALLBACK_URL
-});
-
-
 // Configurazione Google Strategy
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
