@@ -52,11 +52,12 @@ app.use('/api', limiter);
 const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
 const characterSheetRoutes = require('./routes/characterSheet.routes'); // ✅ la rotta per immagini e schede
+const aiRoutes = require('./routes/ai.routes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/character-sheets', characterSheetRoutes); // ✅ collega le route delle schede
-
+app.use('/api/ai', aiRoutes);
 // ✅ Test base
 app.get('/', (req, res) => {
   res.json({ message: 'DnD Companion API is running' });
